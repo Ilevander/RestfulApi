@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestfulApi.Features.CORS.Commands.ClinicCommands;
+using RestfulApi.Features.CORS.Handlers.ClinicHandlers;
+using RestfulApi.Features.CORS.Queries.ClinicQueries;
 using RestfulApi.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,93 +12,55 @@ using System.Threading.Tasks;
 [ApiController]
 public class ClinicsController : ControllerBase
 {
-    private readonly ClinicSysDbContext _context;
+    private readonly GetClinicByIdQueryHandler _getClinicByIdQueryHandler;
+    private readonly GetClinicQueryHandler _getClinicQueryHandler;
+    private readonly CreateClinicCommandHandler _createClinicCommandHandler;
+    private readonly RemoveClinicCommandHandler _removeClinicCommandHandler;
+    private readonly UpdateClinicCommandHandler _updateClinicCommandHandler;
 
-    public ClinicsController(ClinicSysDbContext dbContext)
+    public ClinicsController(GetClinicByIdQueryHandler getClinicByIdQueryHandler, GetClinicQueryHandler getClinicQueryHandler, CreateClinicCommandHandler createClinicCommandHandler, RemoveClinicCommandHandler removeClinicCommandHandler, UpdateClinicCommandHandler updateClinicCommandHandler)
     {
-        _context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        _getClinicByIdQueryHandler = getClinicByIdQueryHandler;
+        _getClinicQueryHandler = getClinicQueryHandler;
+        _createClinicCommandHandler = createClinicCommandHandler;
+        _removeClinicCommandHandler = removeClinicCommandHandler;
+        _updateClinicCommandHandler = updateClinicCommandHandler;
     }
 
-    // GET: api/Clinics
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Clinic>>> GetClinics()
+    public async Task<IActionResult> ClinicList()
     {
-        return await _context.Clinics.ToListAsync();
+        var values = await _getClinicQueryHandler.Handle();
+        return Ok(values);
     }
 
-    // GET: api/Clinics/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Clinic>> GetClinic(int id)
+    public async Task<IActionResult> GetClinic(int id)
     {
-        var clinic = await _context.Clinics.FindAsync(id);
-
-        if (clinic == null)
-        {
-            return NotFound();
-        }
-
-        return clinic;
+        var value = await _getClinicByIdQueryHandler.Handle(new GetClinicByIdQuery(id));
+        return Ok(value);
     }
 
-    // POST: api/Clinics
     [HttpPost]
-    public async Task<ActionResult<Clinic>> PostClinic(Clinic clinic)
+    public async Task<IActionResult> CreateClinic(CreateClinicCommand command)
     {
-        _context.Clinics.Add(clinic);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetClinic), new { id = clinic.ClinicId }, clinic);
+        await _createClinicCommandHandler.Handle(command);
+        return Ok("Created Successfuly");
     }
 
-    // PUT: api/Clinics/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutClinic(int id, Clinic clinic)
+
+    [HttpDelete]
+    public async Task<IActionResult> RemoveClinic(int id)
     {
-        if (id != clinic.ClinicId)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(clinic).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!ClinicExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+        await _removeClinicCommandHandler.Handle(new RemoveClinicCommand(id));
+        return Ok("Removed Successfruly");
     }
 
-    // DELETE: api/Clinics/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteClinic(int id)
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateClinic(UpdateClinicCommand command)
     {
-        var clinic = await _context.Clinics.FindAsync(id);
-
-        if (clinic == null)
-        {
-            return NotFound();
-        }
-
-        _context.Clinics.Remove(clinic);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool ClinicExists(int id)
-    {
-        return _context.Clinics.Any(e => e.ClinicId == id);
+        await _updateClinicCommandHandler.Handle(command);
+        return Ok("Updated Successfuly");
     }
 }

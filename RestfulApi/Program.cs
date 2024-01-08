@@ -2,7 +2,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using RestfulApi.Features.CORS.Handlers.AppointmentHandler;
 using RestfulApi.Features.CORS.Handlers.BookingHandlers;
+using RestfulApi.Features.CORS.Handlers.ClinicHandlers;
+using RestfulApi.Features.CORS.Handlers.DoctorHandler;
 using RestfulApi.Features.CORS.Handlers.FeeHandlers;
+using RestfulApi.Features.CORS.Handlers.PatientHandler;
+using RestfulApi.Features.CORS.Handlers.ScheduleHandler;
+using RestfulApi.Features.CORS.Handlers.UserHandlers;
 using RestfulApi.Interfaces;
 using RestfulApi.Models;
 using RestfulApi.Repositories;
@@ -30,6 +35,36 @@ builder.Services.AddScoped<GetBookingByIdQueryHandler>();
 builder.Services.AddScoped<CreateBookingCommandHandler>();
 builder.Services.AddScoped<RemoveBookingCommandHandler>();
 builder.Services.AddScoped<UpdateBookingCommandHandler>();
+/*Doctor Scop*/
+builder.Services.AddScoped<GetDoctorQueryHandler>();
+builder.Services.AddScoped<GetDoctorByIdQueryHandler>();
+builder.Services.AddScoped<CreateDoctorCommandHandler>();
+builder.Services.AddScoped<RemoveDoctorCommandHandler>();
+builder.Services.AddScoped<UpdateDoctorCommandHandler>();
+/*Patient Scop*/
+builder.Services.AddScoped<GetPatientQueryHandler>();
+builder.Services.AddScoped<GetPatientByIdQueryHandler>();
+builder.Services.AddScoped<CreatePatientCommandHandler>();
+builder.Services.AddScoped<RemovePatientCommandHandler>();
+builder.Services.AddScoped<UpdatePatientCommandHandler>();
+/*Schedule Scop*/
+builder.Services.AddScoped<GetScheduleQueryHandler>();
+builder.Services.AddScoped<GetScheduleByIdQueryHandler>();
+builder.Services.AddScoped<CreateScheduleCommandHandler>();
+builder.Services.AddScoped<RemoveScheduleCommandHandler>();
+builder.Services.AddScoped<UpdateScheduleCommandHandler>();
+/*Clinic Scop*/
+builder.Services.AddScoped<GetClinicQueryHandler>();
+builder.Services.AddScoped<GetClinicByIdQueryHandler>();
+builder.Services.AddScoped<CreateClinicCommandHandler>();
+builder.Services.AddScoped<RemoveClinicCommandHandler>();
+builder.Services.AddScoped<UpdateClinicCommandHandler>();
+/*User Scop*/
+builder.Services.AddScoped<GetUserQueryHandler>();
+builder.Services.AddScoped<GetUserByIdQueryHandler>();
+builder.Services.AddScoped<CreateUserCommandHandler>();
+builder.Services.AddScoped<RemoveUserCommandHandler>();
+builder.Services.AddScoped<UpdateUserCommandHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

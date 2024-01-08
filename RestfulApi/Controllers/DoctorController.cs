@@ -1,5 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestfulApi.Features.CORS.Commands.DoctorCommands;
+using RestfulApi.Features.CORS.Commands.FeeCommands;
+using RestfulApi.Features.CORS.Handlers.DoctorHandler;
+using RestfulApi.Features.CORS.Handlers.FeeHandlers;
+using RestfulApi.Features.CORS.Queries.DoctorQueries;
+using RestfulApi.Features.CORS.Queries.FeeQueries;
 using RestfulApi.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,105 +15,55 @@ using System.Threading.Tasks;
 [ApiController]
 public class DoctorsController : ControllerBase
 {
-    private readonly ClinicSysDbContext _context;
+    private readonly CreateDoctorCommandHandler _createDocotorCommandHandler;
+    private readonly GetDoctorByIdQueryHandler _getDoctorByIdQueryHandler;
+    private readonly GetDoctorQueryHandler _getDoctorQueryHandler;
+    private readonly UpdateDoctorCommandHandler _updateDoctorCommandHandler;
+    private readonly RemoveDoctorCommandHandler _removeDoctorCommandHandler;
 
-    public DoctorsController(ClinicSysDbContext context)
+    public DoctorsController(CreateDoctorCommandHandler createDocotorCommandHandler, GetDoctorByIdQueryHandler getDoctorByIdQueryHandler, GetDoctorQueryHandler getDoctorQueryHandler, UpdateDoctorCommandHandler updateDoctorCommandHandler, RemoveDoctorCommandHandler removeDoctorCommandHandler)
     {
-        _context = context;
+        _createDocotorCommandHandler = createDocotorCommandHandler;
+        _getDoctorByIdQueryHandler = getDoctorByIdQueryHandler;
+        _getDoctorQueryHandler = getDoctorQueryHandler;
+        _updateDoctorCommandHandler = updateDoctorCommandHandler;
+        _removeDoctorCommandHandler = removeDoctorCommandHandler;
     }
 
-    // GET: api/Doctors
     [HttpGet]
-    public IEnumerable<Doctor> GetDoctors()
+    public async Task<IActionResult> DoctorList()
     {
-        using (var context = new ClinicSysDbContext())
-        {
-            Doctor doctor = new Doctor();
-
-            doctor.DoctorName = "ilyass";
-            doctor.Specialization = "jara7";
-
-            context.Doctors.Add(doctor);
-            context.SaveChanges();
-
-            return context.Doctors.Where(doc => doc.DoctorName == "ilyass").ToList();
-        }
-        
+        var values = await _getDoctorQueryHandler.Handle();
+        return Ok(values);
     }
 
-    // GET: api/Doctors/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Doctor>> GetDoctor(int id)
+    public async Task<IActionResult> GetDoctor(int id)
     {
-        var doctor = await _context.Doctors.FindAsync(id);
-
-        if (doctor == null)
-        {
-            return NotFound();
-        }
-
-        return doctor;
+        var value = await _getDoctorByIdQueryHandler.Handle(new GetDoctorByIdQuery(id));
+        return Ok(value);
     }
 
-    // POST: api/Doctors
     [HttpPost]
-    public async Task<ActionResult<Doctor>> PostDoctor(Doctor doctor)
+    public async Task<IActionResult> CreateDoctor(CreateDoctorCommand command)
     {
-        _context.Doctors.Add(doctor);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetDoctor), new { id = doctor.DoctorId }, doctor);
+        await _createDocotorCommandHandler.Handle(command);
+        return Ok("Created Successfuly");
     }
 
-    // PUT: api/Doctors/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutDoctor(int id, Doctor doctor)
+
+    [HttpDelete]
+    public async Task<IActionResult> RemoveDoctor(int id)
     {
-        if (id != doctor.DoctorId)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(doctor).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!DoctorExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+        await _removeDoctorCommandHandler.Handle(new RemoveDoctorCommand(id));
+        return Ok("Removed Successfruly");
     }
 
-    // DELETE: api/Doctors/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteDoctor(int id)
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateDoctor(UpdateDoctorCommand command)
     {
-        var doctor = await _context.Doctors.FindAsync(id);
-
-        if (doctor == null)
-        {
-            return NotFound();
-        }
-
-        _context.Doctors.Remove(doctor);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool DoctorExists(int id)
-    {
-        return _context.Doctors.Any(e => e.DoctorId == id);
+        await _updateDoctorCommandHandler.Handle(command);
+        return Ok("Updated Successfuly");
     }
 }

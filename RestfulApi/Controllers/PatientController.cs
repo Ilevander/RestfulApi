@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestfulApi.Features.CORS.Commands.PatientCommands;
+using RestfulApi.Features.CORS.Handlers.PatientHandler;
+using RestfulApi.Features.CORS.Queries.PatientQueries;
 using RestfulApi.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,93 +12,55 @@ using System.Threading.Tasks;
 [ApiController]
 public class PatientsController : ControllerBase
 {
-    private readonly ClinicSysDbContext _context;
+    private readonly GetPatientByIdQueryHandler _getPatientByIdQueryHandler;
+    private readonly GetPatientQueryHandler _getPatientQueryHandler;
+    private readonly CreatePatientCommandHandler _createPatientCommandHandler;
+    private readonly RemovePatientCommandHandler _removePatientCommandHandler;
+    private readonly UpdatePatientCommandHandler _updatePatientCommandHandler;
 
-    public PatientsController(ClinicSysDbContext context)
+    public PatientsController(GetPatientByIdQueryHandler getPatientByIdQueryHandler, GetPatientQueryHandler getPatientQueryHandler, CreatePatientCommandHandler createPatientCommandHandler, RemovePatientCommandHandler removePatientCommandHandler, UpdatePatientCommandHandler updatePatientCommandHandler)
     {
-        _context = context;
+        _getPatientByIdQueryHandler = getPatientByIdQueryHandler;
+        _getPatientQueryHandler = getPatientQueryHandler;
+        _createPatientCommandHandler = createPatientCommandHandler;
+        _removePatientCommandHandler = removePatientCommandHandler;
+        _updatePatientCommandHandler = updatePatientCommandHandler;
     }
 
-    // GET: api/Patients
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+    public async Task<IActionResult> PatientList()
     {
-        return await _context.Patients.ToListAsync();
+        var values = await _getPatientQueryHandler.Handle();
+        return Ok(values);
     }
 
-    // GET: api/Patients/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Patient>> GetPatient(int id)
+    public async Task<IActionResult> GetPatient(int id)
     {
-        var patient = await _context.Patients.FindAsync(id);
-
-        if (patient == null)
-        {
-            return NotFound();
-        }
-
-        return patient;
+        var value = await _getPatientByIdQueryHandler.Handle(new GetPatientByIdQuery(id));
+        return Ok(value);
     }
 
-    // POST: api/Patients
     [HttpPost]
-    public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+    public async Task<IActionResult> CreateFee(CreatePatientCommand command)
     {
-        _context.Patients.Add(patient);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetPatient), new { id = patient.Id }, patient);
+        await _createPatientCommandHandler.Handle(command);
+        return Ok("Created Successfuly");
     }
 
-    // PUT: api/Patients/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutPatient(int id, Patient patient)
+
+    [HttpDelete]
+    public async Task<IActionResult> RemovePatient(int id)
     {
-        if (id != patient.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(patient).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!PatientExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+        await _removePatientCommandHandler.Handle(new RemovePatientCommand(id));
+        return Ok("Removed Successfruly");
     }
 
-    // DELETE: api/Patients/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeletePatient(int id)
+
+    [HttpPut]
+    public async Task<IActionResult> UpdatePatient(UpdatePatientCommand command)
     {
-        var patient = await _context.Patients.FindAsync(id);
-
-        if (patient == null)
-        {
-            return NotFound();
-        }
-
-        _context.Patients.Remove(patient);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool PatientExists(int id)
-    {
-        return _context.Patients.Any(e => e.Id == id);
+        await _updatePatientCommandHandler.Handle(command);
+        return Ok("Updated Successfuly");
     }
 }

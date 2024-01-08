@@ -2,5 +2,11 @@
 {
     public class GetDoctorByIdQuery
     {
+        public int Id { get; set; }
+
+        public GetDoctorByIdQuery(int id)
+        {
+            Id = id;
+        }
     }
 }

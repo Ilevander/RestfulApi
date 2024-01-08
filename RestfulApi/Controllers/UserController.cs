@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestfulApi.Features.CORS.Commands.UserCommands;
+using RestfulApi.Features.CORS.Handlers.UserHandlers;
+using RestfulApi.Features.CORS.Queries.UserQueries;
 using RestfulApi.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,93 +12,55 @@ using System.Threading.Tasks;
 [ApiController]
 public class UsersController : ControllerBase
 {
-    private readonly ClinicSysDbContext _context;
+    private readonly GetUserByIdQueryHandler _getUserByIdQueryHandler;
+    private readonly GetUserQueryHandler _getUserQueryHandler;
+    private readonly CreateUserCommandHandler _createUserCommandHandler;
+    private readonly RemoveUserCommandHandler _removeUserCommandHandler;
+    private readonly UpdateUserCommandHandler _updateUserCommandHandler;
 
-    public UsersController(ClinicSysDbContext context)
+    public UsersController(GetUserByIdQueryHandler getUserByIdQueryHandler, GetUserQueryHandler getUserQueryHandler, CreateUserCommandHandler createUserCommandHandler, RemoveUserCommandHandler removeUserCommandHandler, UpdateUserCommandHandler updateUserCommandHandler)
     {
-        _context = context;
+        _getUserByIdQueryHandler = getUserByIdQueryHandler;
+        _getUserQueryHandler = getUserQueryHandler;
+        _createUserCommandHandler = createUserCommandHandler;
+        _removeUserCommandHandler = removeUserCommandHandler;
+        _updateUserCommandHandler = updateUserCommandHandler;
     }
 
-    // GET: api/Users
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+    public async Task<IActionResult> UserList()
     {
-        return await _context.Users.ToListAsync();
+        var values = await _getUserQueryHandler.Handle();
+        return Ok(values);
     }
 
-    // GET: api/Users/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<User>> GetUser(int id)
+    public async Task<IActionResult> GetUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        return user;
+        var value = await _getUserByIdQueryHandler.Handle(new GetUserByIdQuery(id));
+        return Ok(value);
     }
 
-    // POST: api/Users
     [HttpPost]
-    public async Task<ActionResult<User>> PostUser(User user)
+    public async Task<IActionResult> CreateUser(CreateUserCommand command)
     {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
+        await _createUserCommandHandler.Handle(command);
+        return Ok("Created Successfuly");
     }
 
-    // PUT: api/Users/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutUser(int id, User user)
+
+    [HttpDelete]
+    public async Task<IActionResult> RemoveUser(int id)
     {
-        if (id != user.Id)
-        {
-            return BadRequest();
-        }
-
-        _context.Entry(user).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!UserExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
+        await _removeUserCommandHandler.Handle(new RemoveUserCommand(id));
+        return Ok("Removed Successfruly");
     }
 
-    // DELETE: api/Users/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteUser(int id)
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateUser(UpdateUserCommand command)
     {
-        var user = await _context.Users.FindAsync(id);
-
-        if (user == null)
-        {
-            return NotFound();
-        }
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool UserExists(int id)
-    {
-        return _context.Users.Any(e => e.Id == id);
+        await _updateUserCommandHandler.Handle(command);
+        return Ok("Updated Successfuly");
     }
 }
