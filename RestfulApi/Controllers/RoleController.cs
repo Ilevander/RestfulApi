@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using RestfulApi.Features.CORS.Commands.RoleCommands;
+using RestfulApi.Features.CORS.Handlers.RoleHandler;
+using RestfulApi.Features.CORS.Queries.RoleQueries;
 using RestfulApi.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,93 +12,60 @@ using System.Threading.Tasks;
 [ApiController]
 public class RolesController : ControllerBase
 {
-    private readonly ClinicSysDbContext _context;
+    private readonly CreateRoleCommandHandler _createRoleCommandHandler;
+    private readonly GetRoleByIdQueryHandler _getRoleByIdQueryHandler;
+    private readonly GetRoleQueryHandler _getRoleQueryHandler;
+    private readonly RemoveRoleCommandHandler _removeRoleCommandHandler;
+    private readonly UpdateRoleCommandHandler _updateRoleCommandHandler;
 
-    public RolesController(ClinicSysDbContext context)
+    public RolesController(CreateRoleCommandHandler createRoleCommandHandler, GetRoleByIdQueryHandler getRoleByIdQueryHandler, GetRoleQueryHandler getRoleQueryHandler, RemoveRoleCommandHandler removeRoleCommandHandler, UpdateRoleCommandHandler updateRoleCommandHandler)
     {
-        _context = context;
+        _createRoleCommandHandler = createRoleCommandHandler;
+        _getRoleByIdQueryHandler = getRoleByIdQueryHandler;
+        _getRoleQueryHandler = getRoleQueryHandler;
+        _removeRoleCommandHandler = removeRoleCommandHandler;
+        _updateRoleCommandHandler = updateRoleCommandHandler;
     }
 
-    // GET: api/Roles
+
+    // GET: api/Appointments
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
+    public async Task<IActionResult> RoleList()
     {
-        return await _context.Roles.ToListAsync();
+        var values = await _getRoleQueryHandler.Handle();
+        return Ok(values);
     }
 
-    // GET: api/Roles/5
+    // GET: api/Appointments/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<Role>> GetRole(int id)
+    public async Task<IActionResult> GetRole(int id)
     {
-        var role = await _context.Roles.FindAsync(id);
+        var value = await _getRoleByIdQueryHandler.Handle(new GetRoleByIdQuery(id));
+        return Ok(value);
 
-        if (role == null)
-        {
-            return NotFound();
-        }
-
-        return role;
     }
 
-    // POST: api/Roles
+    // POST: api/Appointments
     [HttpPost]
-    public async Task<ActionResult<Role>> PostRole(Role role)
+    public async Task<IActionResult> CreateRole(CreateRoleCommand command)
     {
-        _context.Roles.Add(role);
-        await _context.SaveChangesAsync();
-
-        return CreatedAtAction(nameof(GetRole), new { id = role.Id }, role);
+        await _createRoleCommandHandler.Handle(command);
+        return Ok("Created Successfully");
     }
 
-    // PUT: api/Roles/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutRole(int id, Role role)
+    [HttpDelete]
+    public async Task<IActionResult> RemoveRole(int id)
     {
-        if (id != role.Id)
-        {
-            return BadRequest();
-        }
+        await _removeRoleCommandHandler.Handle(new RemoveRoleCommand(id));
+        return Ok("Removed Successfully");
 
-        _context.Entry(role).State = EntityState.Modified;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!RoleExists(id))
-            {
-                return NotFound();
-            }
-            else
-            {
-                throw;
-            }
-        }
-
-        return NoContent();
     }
 
-    // DELETE: api/Roles/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteRole(int id)
+    [HttpPut]
+    public async Task<IActionResult> UpdateRole(UpdateRoleCommand command)
     {
-        var role = await _context.Roles.FindAsync(id);
+        await _updateRoleCommandHandler.Handle(command);
+        return Ok("Updated Successfully");
 
-        if (role == null)
-        {
-            return NotFound();
-        }
-
-        _context.Roles.Remove(role);
-        await _context.SaveChangesAsync();
-
-        return NoContent();
-    }
-
-    private bool RoleExists(int id)
-    {
-        return _context.Roles.Any(e => e.Id == id);
     }
 }

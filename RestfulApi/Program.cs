@@ -6,6 +6,8 @@ using RestfulApi.Features.CORS.Handlers.ClinicHandlers;
 using RestfulApi.Features.CORS.Handlers.DoctorHandler;
 using RestfulApi.Features.CORS.Handlers.FeeHandlers;
 using RestfulApi.Features.CORS.Handlers.PatientHandler;
+using RestfulApi.Features.CORS.Handlers.PermissionHandler;
+using RestfulApi.Features.CORS.Handlers.RoleHandler;
 using RestfulApi.Features.CORS.Handlers.ScheduleHandler;
 using RestfulApi.Features.CORS.Handlers.UserHandlers;
 using RestfulApi.Interfaces;
@@ -65,6 +67,20 @@ builder.Services.AddScoped<GetUserByIdQueryHandler>();
 builder.Services.AddScoped<CreateUserCommandHandler>();
 builder.Services.AddScoped<RemoveUserCommandHandler>();
 builder.Services.AddScoped<UpdateUserCommandHandler>();
+/*Role Scop*/
+builder.Services.AddScoped<GetRoleQueryHandler>();
+builder.Services.AddScoped<GetRoleByIdQueryHandler>();
+builder.Services.AddScoped<CreateRoleCommandHandler>();
+builder.Services.AddScoped<RemoveRoleCommandHandler>();
+builder.Services.AddScoped<UpdateRoleCommandHandler>();
+/*Permission Scop*/
+builder.Services.AddScoped<GetPermissionQueryHandler>();
+builder.Services.AddScoped<GetPermissionByIdQueryHandler>();
+builder.Services.AddScoped<CreatePermissionCommandHandler>();
+builder.Services.AddScoped<RemovePermissionCommandHandler>();
+builder.Services.AddScoped<UpdatePermissionCommandHandler>();
+
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
