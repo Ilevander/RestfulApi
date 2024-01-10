@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿// Startup.cs
+
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -36,13 +38,16 @@ namespace RestfulApi
                 options.DefaultRequestCulture = new RequestCulture(defaultCulture);
                 options.SupportedCultures = new List<CultureInfo> { defaultCulture };
                 options.SupportedUICultures = new List<CultureInfo> { defaultCulture };
-            });
+            }); 
 
             // Add DbContext service
             services.AddDbContext<ClinicSysDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-           // services.AddScoped<ClinicSysDbContext>();
+            // Enable CORS
+            
+            //services.AddCors(c => { c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin()); });
+
 
             // Add other services or dependencies here
             services.AddEndpointsApiExplorer();
@@ -78,6 +83,11 @@ namespace RestfulApi
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            // Use CORS before Authorization
+/*            app.UseCors(cors => cors.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+
+            app.UseCors("CorsPolicy");*/
 
             app.UseAuthorization();
 

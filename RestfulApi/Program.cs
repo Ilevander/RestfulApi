@@ -15,7 +15,15 @@ using RestfulApi.Models;
 using RestfulApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
+                 builder =>
+                 {
+                     builder
+                     .WithOrigins("http://localhost:3000")
+                     .AllowAnyMethod()
+                     .AllowAnyHeader()
+                     .AllowCredentials();
+                 }));
 // Add services to the container.
 builder.Services.AddScoped<ClinicSysDbContext>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>)); // Replace Repository<> with your actual repository implementation
@@ -101,6 +109,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+app.UseCors("CorsPolicy");
 
 app.MapControllers();
 
