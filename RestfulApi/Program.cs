@@ -24,6 +24,7 @@ builder.Services.AddCors(options => options.AddPolicy("CorsPolicy",
                      .AllowAnyHeader()
                      .AllowCredentials();
                  }));
+
 // Add services to the container.
 builder.Services.AddScoped<ClinicSysDbContext>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>)); // Replace Repository<> with your actual repository implementation

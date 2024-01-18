@@ -44,7 +44,6 @@ namespace RestfulApi
             services.AddDbContext<ClinicSysDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            // Enable CORS
             
             //services.AddCors(c => { c.AddPolicy("AllowOrigin", options => options.AllowAnyOrigin()); });
 
@@ -70,6 +69,7 @@ namespace RestfulApi
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
+                    c.RoutePrefix = "swagger";
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Ilyass Name");
                 });
             }
